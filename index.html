@@ -1,0 +1,982 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>三𝐗𝐄𝐑𝐀 𝐂𝐑𝐀𝐒𝐇𝐄𝐑三</title>
+
+<!-- Font & Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+<style>
+/* ------------- THEME ------------- */
+:root{
+  --bg-dark: #030617;
+  --text: #e8f7ff;
+  --muted: rgba(200,230,255,0.6);
+  --neon: #00eaff;
+  --neon-strong: #009cff;
+  --glass: rgba(255,255,255,0.02);
+  --radius: 16px;
+  --card-w: 420px;
+
+  --glow-start: #7b2ff7; /* purple */
+  --glow-end: #00eaff;   /* cyan */
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:
+  radial-gradient(circle at 18% 10%, rgba(0,234,255,0.03), transparent 25%),
+  linear-gradient(180deg,#00050a 0%, #031926 100%);
+  color:var(--text);font-family:Orbitron, 'Poppins', sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+.container{max-width:980px;margin:0 auto;padding:14px;position:relative;z-index:3}
+
+/* Canvas login background (particle network) */
+#bgCanvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .6s ease;
+  filter: blur(0px) saturate(110%);
+}
+
+/* Topbar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 6px;position:relative;z-index:4}
+.brand{display:flex;align-items:center;gap:12px}
+.logo-mini{width:40px;height:40px;border-radius:10px;overflow:hidden;box-shadow:0 8px 28px rgba(0,234,255,0.04)}
+.app-title{font-weight:700}
+
+/* show hamburger only after login via JS */
+.hamburger{font-size:26px;color:var(--neon);cursor:pointer;display:none}
+
+/* Centered login card */
+.center-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px;position:relative;z-index:5}
+.card{
+  position:relative;z-index:6;
+  background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.003));
+  backdrop-filter: blur(6px);
+  border-radius:18px;padding:22px;width:100%;max-width:var(--card-w);
+  border:1px solid rgba(255,255,255,0.04);
+  box-shadow:0 18px 50px rgba(0,0,0,0.7);transition:all .28s;
+  overflow:visible;
+}
+
+/* gradient glow border using pseudo-element */
+.card::before{
+  content:'';
+  position:absolute;
+  inset:-6px;
+  border-radius:22px;
+  background: linear-gradient(90deg, rgba(123,47,247,0.95), rgba(0,234,255,0.95));
+  z-index:-1;
+  filter: blur(10px);
+  opacity:0.9;
+  pointer-events:none;
+}
+/* inner subtle outline for definition */
+.card::after{
+  content:'';
+  position:absolute;
+  inset:-2px;
+  border-radius:20px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  z-index:-1;
+  mix-blend-mode:overlay;
+  pointer-events:none;
+}
+
+.logo{width:96px;height:96px;border-radius:18px;margin:0 auto 12px;object-fit:cover;box-shadow:0 8px 34px rgba(0,234,255,0.06);display:block}
+.title{font-family:Orbitron, sans-serif;font-size:22px;color:var(--neon);text-align:center;margin-bottom:6px}
+.subtitle{font-size:13px;color:var(--muted);text-align:center;margin-bottom:14px}
+.form-group{position:relative;margin-bottom:12px}
+.form-group i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--neon);font-size:14px}
+input[type=text], input[type=password], select, textarea {
+  width:100%;
+  padding:12px 12px 12px 44px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.04);
+  background:rgba(0,0,0,0.55);
+  color:#fff;
+  font-size:14px;
+  outline:none;
+}
+input::placeholder, textarea::placeholder { color:rgba(255,255,255,0.45) }
+input:focus, select:focus, textarea:focus { border-color:var(--neon); box-shadow:0 0 12px rgba(0,234,255,0.06) }
+
+.btn-primary{
+  width:100%; padding:12px; border-radius:12px; border:none; cursor:pointer;
+  background:linear-gradient(90deg,var(--neon),var(--neon-strong)); color:#001; font-weight:800; letter-spacing:0.6px;
+  box-shadow:0 12px 36px rgba(0,234,255,0.08);
+}
+
+/* Buy Access centered */
+.buy-access{display:block;margin:12px auto 0;padding:10px 16px;border-radius:12px;background:linear-gradient(90deg,var(--neon),var(--neon-strong));color:#001;text-decoration:none;text-align:center;max-width:260px;box-shadow:0 10px 30px rgba(0,234,255,0.06)}
+
+/* Toast (floating with slide animation) */
+.toast{
+  position:fixed;left:50%;transform:translateX(-50%) translateY(28px);bottom:28px;
+  background:var(--neon);color:#001;padding:10px 14px;border-radius:12px;box-shadow:0 12px 36px rgba(0,234,255,0.08);
+  display:none;z-index:9999;opacity:0;transition:all .36s;
+}
+.toast.show{display:block;opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Loading (XR small) */
+#loadingOverlay{
+  position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:9998;
+}
+.loading-wrap{display:flex;align-items:center;gap:10px;flex-direction:column}
+.xr-spinner{width:72px;height:72px;display:flex;align-items:center;justify-content:center;position:relative}
+.xr-ring{position:absolute;inset:0;border-radius:999px;border:3px solid rgba(0,234,255,0.12);box-shadow:0 6px 20px rgba(0,234,255,0.06);animation:spinSlow 2.6s linear infinite}
+.xr-ring::after{content:'';position:absolute;inset:8px;border-radius:999px;border:2px dotted rgba(0,234,255,0.03)}
+.xr-text{font-family:Orbitron, sans-serif;color:var(--neon);font-size:20px;z-index:2;animation: xrPulse 1.4s ease-in-out infinite}
+@keyframes spinSlow{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+@keyframes xrPulse{0%{transform:scale(.95)}50%{transform:scale(1.06)}100%{transform:scale(.95)}}
+
+/* Main Panel */
+.main-wrap{display:none;padding:12px 6px;transition:filter .36s;position:relative;z-index:3}
+.banner{width:100%;border-radius:14px;overflow:hidden;border:1px solid rgba(0,234,255,0.03);box-shadow:0 8px 30px rgba(0,234,255,0.02);margin-bottom:14px}
+.banner video{width:100%;height:auto;display:block;background:#000}
+.banner img{width:100%;height:auto;display:block;background:#000}
+
+/* Menu grid (no rectangular flash) */
+.menu-card{background:linear-gradient(180deg, rgba(0,8,15,0.92), rgba(0,4,8,0.96));border-radius:18px;padding:14px;border:1px solid rgba(0,234,255,0.03);display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.menu-btn{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px;border-radius:12px;cursor:pointer;transition:transform .12s ease,filter .12s;background:transparent;-webkit-tap-highlight-color: transparent}
+.menu-btn .icon{width:64px;height:64px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:20px;color:rgba(180,230,255,0.75);background:transparent;transition:all .18s}
+.menu-text{font-size:12px;color:var(--muted);text-align:center;transition:color .18s}
+.menu-btn:hover .icon{color:var(--neon);filter:drop-shadow(0 0 10px rgba(0,234,255,0.2))}
+.menu-btn.pressed .icon,.menu-btn:active .icon{transform:scale(1.06);color:var(--neon);filter:drop-shadow(0 0 18px rgba(0,234,255,0.22))}
+
+/* Action card */
+.action-card{margin-top:16px;padding:14px;border-radius:14px;border:1px solid rgba(0,234,255,0.03);cursor:pointer;transition:transform .14s}
+.action-card.gradient-tele{background:linear-gradient(90deg, rgba(0,234,255,0.12), rgba(0,134,210,0.08));box-shadow:0 8px 28px rgba(0,234,255,0.04)}
+.action-card:active{transform:translateY(2px)}
+
+/* Stats card */
+.stats-card{margin-top:16px;padding:12px;border-radius:16px;border:1px solid rgba(0,234,255,0.06);background:linear-gradient(180deg, rgba(0,234,255,0.06), rgba(0,134,210,0.03));box-shadow:0 14px 40px rgba(0,0,0,0.6)}
+.stats-row{display:flex;align-items:center;justify-content:space-between;padding:10px 6px;border-bottom:1px solid rgba(255,255,255,0.03);gap:8px}
+
+/* Side menu layout updated to have logout at bottom */
+#sideMenu{position:fixed;left:-360px;top:0;height:100%;width:360px;background:linear-gradient(180deg, rgba(0,6,10,0.96), rgba(0,18,28,0.98));padding:18px;border-right:2px solid rgba(0,234,255,0.06);z-index:100;transition:left .28s,filter .2s;display:flex;flex-direction:column;justify-content:space-between}
+.side-avatar{width:72px;height:72px;border-radius:12px;overflow:hidden}
+.menu-item{padding:12px;margin-top:8px;border-radius:10px;display:flex;align-items:center;justify-content:space-between;color:var(--muted);transition:all .18s;cursor:pointer}
+.menu-item:hover{color:var(--neon);text-shadow:0 0 10px rgba(0,234,255,0.12)}
+
+/* Logout button - transparent, bottom, visible but elegant */
+.logout{
+  width:100%;
+  padding:12px 14px;
+  border-radius:10px;
+  border:none;
+  background:transparent;
+  color:var(--muted);
+  text-align:left;
+  cursor:pointer;
+  font-weight:700;
+  letter-spacing:0.6px;
+  transition:all .18s;
+  outline:none;
+}
+.logout:hover{
+  color:var(--neon);
+  background:rgba(0,234,255,0.03);
+  box-shadow: inset 0 0 12px rgba(0,234,255,0.02);
+}
+
+/* Popup */
+#modalBack{display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:120}
+.popup{width:92%;max-width:820px;max-height:82vh;overflow:auto;border-radius:12px;padding:14px;background:linear-gradient(180deg, rgba(1,6,8,0.98), rgba(2,8,12,0.98));border:1px solid rgba(0,234,255,0.06);transform:scale(.96);opacity:0;transition:all .26s cubic-bezier(.2,.9,.2,1)}
+.popup.show{transform:scale(1);opacity:1}
+.table{width:100%;border-collapse:collapse;color:var(--text)}
+.table th,.table td{padding:8px;border-bottom:1px solid rgba(255,255,255,0.03);font-size:13px;text-align:left}
+
+/* Buttons */
+.btn-small{padding:8px 10px;border-radius:8px;border:none;background:linear-gradient(90deg,var(--neon),var(--neon-strong));color:#001;cursor:pointer}
+
+/* Custom select / options fallback */
+.bug-select{position:relative}
+.select-display{padding:12px;border-radius:10px;background:rgba(3,6,8,0.75);border:2px solid rgba(0,234,255,0.08);color:var(--neon);cursor:pointer}
+.options{position:absolute;left:0;right:0;top:calc(100% + 8px);background:#03050a;border-radius:12px;padding:8px;box-shadow:0 12px 40px rgba(0,0,0,0.6);display:none;z-index:50}
+.options.show{display:block;animation:dropIn .28s}
+.bug-option{padding:12px;border-radius:8px;color:var(--neon);cursor:pointer}
+@keyframes dropIn{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* Responsive */
+@media(max-width:760px){
+  .menu-card{grid-template-columns:repeat(3,1fr)}
+  #sideMenu{width:92%;left:-100%}
+  .card::before{inset:-4px}
+}
+@media(min-width:860px){ .hamburger{display:block} }
+</style>
+</head>
+<body>
+
+<!-- Canvas background (particle network) - hidden by default (opacity 0) -->
+<canvas id="bgCanvas" aria-hidden="true"></canvas>
+
+<!-- ====== TOPBAR ====== -->
+<div class="container">
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo-mini"><img id="topMiniLogo" src="https://j.top4top.io/p_357692ypq0.png" style="width:100%;height:100%;object-fit:cover" alt="logo"/></div>
+      <div class="app-title">三𝐗𝐄𝐑𝐀 𝐂𝐑𝐀𝐒𝐇𝐄𝐑三</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div id="hambBtn" class="hamburger" title="Menu">☰</div>
+      <div id="profileBtn" style="cursor:pointer;color:var(--neon);min-width:18px;text-align:center"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== LOGIN SCREEN ====== -->
+<div class="center-wrap" id="loginScreen">
+  <div class="card" role="region" aria-label="Login">
+    <img id="loginLogo" class="logo" src="https://j.top4top.io/p_357692ypq0.png" alt="logo"/>
+    <div class="title">XERA CRASH</div>
+    <div class="subtitle">developed by @rellzxvx</div>
+
+    <div>
+      <div class="form-group">
+        <i class="fas fa-user"></i>
+        <input type="text" id="usernameInput" placeholder="Username" autocomplete="username" />
+      </div>
+      <div class="form-group">
+        <i class="fas fa-key"></i>
+        <input type="password" id="passwordInput" placeholder="Password" autocomplete="current-password" />
+      </div>
+      <button id="loginBtn" class="btn-primary"><i class="fa-solid fa-right-to-bracket"></i> LOGIN</button>
+    </div>
+
+    <a id="buyAccountLink" class="buy-access" href="#" style="display:inline-block;margin-top:12px;text-decoration:none"><i class="fas fa-coins"></i> Buy Key Access</a>
+    <div class="footer" style="margin-top:12px;text-align:center;color:var(--muted);font-size:13px">© 2025 rellzxvx</div>
+  </div>
+</div>
+
+<!-- ====== MAIN PANEL ====== -->
+<div class="main-wrap container" id="mainPanel" aria-hidden="true">
+
+  <!-- Banner (video autoplay loop muted, no controls) -->
+  <div class="banner" id="bannerWrap">
+    <!-- placeholder — content set by JS to support video or gif -->
+  </div>
+
+  <!-- Menu grid -->
+  <div class="menu-card" role="navigation" aria-label="Main menu">
+    <div class="menu-btn" id="btnBug" tabindex="0" title="Bug Panel"><div class="icon"><i class="fa-solid fa-bolt"></i></div><div class="menu-text">Bug Panel</div></div>
+    <div class="menu-btn" id="btnWhats" tabindex="0" title="WhatsApp"><div class="icon"><i class="fa-brands fa-whatsapp"></i></div><div class="menu-text">WhatsApp</div></div>
+    <div class="menu-btn" id="btnChat" tabindex="0" title="Chat"><div class="icon"><i class="fa-solid fa-comment"></i></div><div class="menu-text">Chat</div></div>
+    <div class="menu-btn" id="btnAccount" tabindex="0" title="Account"><div class="icon"><i class="fa-solid fa-user-gear"></i></div><div class="menu-text">Account</div></div>
+
+    <div class="menu-btn" id="btnSpam" tabindex="0" title="Spam NGL"><div class="icon"><i class="fa-solid fa-paper-plane"></i></div><div class="menu-text">Spam NGL</div></div>
+    <div class="menu-btn" id="btnNik" tabindex="0" title="NIK Parse"><div class="icon"><i class="fa-solid fa-id-card"></i></div><div class="menu-text">NIK Parse</div></div>
+    <div class="menu-btn" id="btnSub" tabindex="0" title="Subdomain Finder"><div class="icon"><i class="fa-solid fa-earth"></i></div><div class="menu-text">Subdomain</div></div>
+    <div class="menu-btn" id="btnMore" tabindex="0" title="More"><div class="icon"><i class="fa-solid fa-ellipsis"></i></div><div class="menu-text">More</div></div>
+  </div>
+
+  <!-- Channel CTA -->
+  <div class="action-card gradient-tele" id="channelCard" role="button" aria-label="Open Channel">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:44px;height:44px;border-radius:10px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center"><i class="fa-brands fa-whatsapp" style="color:var(--neon)"></i></div>
+      <div style="flex:1">
+        <div style="font-weight:700;color:var(--text)">🔥 Whatsapp Channel: Join To Get More Info!</div>
+        <div class="small-muted" style="margin-top:6px;color:var(--muted)">Tap to open channel</div>
+      </div>
+      <div><i class="fa-solid fa-chevron-right" style="opacity:0.6;color:var(--neon)"></i></div>
+    </div>
+  </div>
+
+  <!-- Server stats -->
+  <div class="stats-card" role="region" aria-label="Server Stats">
+    <h3 style="margin:0 0 8px 0">📊 Server Stats</h3>
+    <div class="stats-row"><div style="display:flex;align-items:center;gap:8px"><i class="fa-solid fa-user-friends"></i> <span>Online Users</span></div><div id="onlineCount">0</div></div>
+    <div class="stats-row" style="border-bottom:none"><div style="display:flex;align-items:center;gap:8px"><i class="fa-solid fa-rocket"></i> <span>Active Sender</span></div><div id="activeCount">0</div></div>
+  </div>
+
+</div>
+
+<!-- ====== SIDEMENU ====== -->
+<div id="sideMenu" aria-hidden="true">
+  <div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="side-avatar"><img id="sideAvatar" src="https://j.top4top.io/p_357692ypq0.png" style="width:100%;height:100%;object-fit:cover" /></div>
+        <div>
+          <div id="sideUser" style="font-weight:700;color:var(--neon)">guest</div>
+          <div id="sideRole" style="font-size:13px;color:var(--muted)">Role: -</div>
+          <div id="sideExp" style="font-size:13px;color:var(--muted)">Exp: -</div>
+        </div>
+      </div>
+      <div id="closeSide" style="cursor:pointer;color:var(--neon)">✕</div>
+    </div>
+
+    <div style="margin-top:18px">
+      <div class="menu-item" id="menuHome">Home <small style="color:var(--muted)">Dashboard</small></div>
+      <div class="menu-item" id="menuBuy">Buy Account <small style="color:var(--muted)">to develop</small></div>
+      <div class="menu-item" id="menuChat">Chat <small style="color:var(--muted)">Open WhatsApp</small></div>
+      <div class="menu-item" id="menuCreate" style="display:none;color:var(--text)">Create Account <small style="color:var(--muted)">Dev/Owner/Reseller</small></div>
+      <div class="menu-item" id="menuManage">Manage Account <small style="color:var(--muted)">Change Password</small></div>
+      <div class="menu-item" id="menuBugStats" style="display:none">Bug Stats <small style="color:var(--muted)">only developer</small></div>
+    </div>
+  </div>
+
+  <!-- logout placed at bottom -->
+  <div style="padding-top:12px">
+    <button class="logout" id="logoutBtn"><i class="fa-solid fa-right-from-bracket" style="margin-right:8px"></i> LOG OUT</button>
+  </div>
+</div>
+
+<!-- ====== MODAL, LOADING, TOAST ====== -->
+<div id="modalBack"></div>
+
+<div id="loadingOverlay" aria-hidden="true">
+  <div class="loading-wrap" role="status" aria-live="polite">
+    <div class="xr-spinner" aria-hidden="true">
+      <div class="xr-ring"></div>
+      <div class="xr-text">XR</div>
+    </div>
+    <div style="color:var(--muted);font-size:13px">Loading…</div>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<!-- ====== SCRIPT ====== -->
+<script>
+/* ================== CONFIG (editable) ================== */
+/* Change these URLs if you want different banner/logo later */
+const LOGO_URL = "https://j.top4top.io/p_357692ypq0.png"; // top mini + logo default
+const BANNER_URL = "https://4up4.com/uploads/file_2025-10-17_120526.gif"; // GIF banner
+const WHATSAPP_CONTACT = "https://wa.me/6282186825619";
+const TELEGRAM_CONTACT = "https://t.me/rellzxvx";
+const CHANNEL_LINK = "https://whatsapp.com/channel/0029VbAOggq3mFYCOUddKZ2j";
+
+/* ================== localStorage helper ================== */
+const LS = {
+  get(k){ try{ return JSON.parse(localStorage.getItem(k)||'null') } catch(e){ return null } },
+  set(k,v){ localStorage.setItem(k, JSON.stringify(v)); },
+  rm(k){ localStorage.removeItem(k); }
+};
+
+/* ensure initial user(s) */
+if(!LS.get('users')) {
+  LS.set('users', [{ usn:'rellzxvx', pass:'211109', role:'developer', exp:'9999-09-09' }]);
+}
+
+/* ================== elements ================== */
+const loginScreen = document.getElementById('loginScreen');
+const mainPanel = document.getElementById('mainPanel');
+const loginBtn = document.getElementById('loginBtn');
+const usernameInput = document.getElementById('usernameInput');
+const passwordInput = document.getElementById('passwordInput');
+const modalBack = document.getElementById('modalBack');
+const toastEl = document.getElementById('toast');
+const loadingOverlay = document.getElementById('loadingOverlay');
+const hambBtn = document.getElementById('hambBtn');
+const sideMenu = document.getElementById('sideMenu');
+const buyAccountLink = document.getElementById('buyAccountLink');
+const channelCard = document.getElementById('channelCard');
+const bannerWrap = document.getElementById('bannerWrap');
+const topMiniLogo = document.getElementById('topMiniLogo');
+const loginLogo = document.getElementById('loginLogo');
+const profileBtn = document.getElementById('profileBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const canvas = document.getElementById('bgCanvas');
+
+let currentUser = LS.get('currentUser') || null;
+
+/* apply editable assets */
+topMiniLogo.src = LOGO_URL;
+loginLogo.src = LOGO_URL;
+
+/* Render banner - supports video (mp4/webm) or gif/image */
+function renderBanner(url){
+  bannerWrap.innerHTML = '';
+  if(!url) return;
+  const u = url.split('?')[0].toLowerCase();
+  if(u.endsWith('.gif') || u.endsWith('.png') || u.endsWith('.jpg') || u.endsWith('.jpeg') || u.endsWith('.webp')){
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = 'banner';
+    img.loading = 'lazy';
+    bannerWrap.appendChild(img);
+  } else {
+    const vid = document.createElement('video');
+    vid.autoplay = true;
+    vid.muted = true;
+    vid.loop = true;
+    vid.playsInline = true;
+    vid.preload = 'auto';
+    vid.src = url;
+    bannerWrap.appendChild(vid);
+  }
+}
+/* set banner on load (but visible only after login) */
+renderBanner(BANNER_URL);
+
+/* ================== Particle background (complex network) ================== */
+
+/*
+  particle network adapted from your snippet.
+  It will start only when showLoginBackground() is called,
+  and stop when hideLoginBackground() is called to save CPU.
+*/
+
+let ctx = canvas.getContext('2d');
+let particles = [];
+let animId = null;
+let isRunning = false;
+let maxDist = 130;
+
+function setupParticles() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  canvas.width = w;
+  canvas.height = h;
+  // tune particle count by screen size for performance
+  const count = (w < 480) ? 50 : (w < 900 ? 90 : 140);
+  particles = [];
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      vx: (Math.random() - 0.5) * (0.6 + Math.random()*0.8),
+      vy: (Math.random() - 0.5) * (0.6 + Math.random()*0.8),
+      r: 1 + Math.random() * 1.4
+    });
+  }
+}
+
+function stepParticles() {
+  const w = canvas.width;
+  const h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  // draw particles
+  for (let p of particles) {
+    p.x += p.vx;
+    p.y += p.vy;
+    if (p.x < -10) p.x = w + 10;
+    if (p.x > w + 10) p.x = -10;
+    if (p.y < -10) p.y = h + 10;
+    if (p.y > h + 10) p.y = -10;
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255,255,255,0.9)";
+    ctx.fill();
+  }
+
+  // connective lines
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const a = particles[i];
+      const b = particles[j];
+      const dx = a.x - b.x;
+      const dy = a.y - b.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < maxDist) {
+        const alpha = 1 - dist / maxDist;
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.strokeStyle = `rgba(255,255,255,${0.12 * alpha})`;
+        ctx.lineWidth = 0.7 * alpha;
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+function animateParticles() {
+  stepParticles();
+  animId = requestAnimationFrame(animateParticles);
+}
+
+function startParticles() {
+  if (isRunning) return;
+  setupParticles();
+  isRunning = true;
+  canvas.style.opacity = '1';
+  animateParticles();
+}
+
+function stopParticles() {
+  if (!isRunning) return;
+  cancelAnimationFrame(animId);
+  animId = null;
+  isRunning = false;
+  // fade out smoothly
+  canvas.style.opacity = '0';
+  // optionally clear after fade
+  setTimeout(()=>{ if(!isRunning){ ctx.clearRect(0,0,canvas.width,canvas.height); } }, 600);
+}
+
+window.addEventListener('resize', () => {
+  if (isRunning) setupParticles();
+});
+
+/* ================== small UI helpers ================== */
+function showToast(msg, type='info'){
+  toastEl.textContent = msg;
+  if(type==='success') toastEl.style.background = 'linear-gradient(90deg,#7ef0c7,#00eaff)';
+  else if(type==='error') toastEl.style.background = 'linear-gradient(90deg,#ff7070,#ff9a9a)';
+  else toastEl.style.background = 'linear-gradient(90deg,var(--neon),var(--neon-strong))';
+  toastEl.classList.add('show');
+  clearTimeout(toastEl._t);
+  toastEl._t = setTimeout(()=>{ toastEl.classList.remove('show'); }, 3200);
+}
+function showLoading(duration=3000){
+  loadingOverlay.style.display = 'flex';
+  return new Promise(res => setTimeout(()=>{ loadingOverlay.style.display = 'none'; res(); }, duration));
+}
+
+/* modal */
+function showModal(html, opts={closeBtn:true}) {
+  modalBack.style.display = 'flex';
+  modalBack.innerHTML = '';
+  modalBack.style.alignItems = 'center';
+  modalBack.style.justifyContent = 'center';
+  const wrapper = document.createElement('div');
+  wrapper.className = 'popup';
+  wrapper.innerHTML = html;
+  modalBack.appendChild(wrapper);
+  requestAnimationFrame(()=> wrapper.classList.add('show'));
+  if(opts.closeBtn) {
+    const cb = document.createElement('div');
+    cb.style.textAlign = 'right';
+    cb.style.marginTop = '12px';
+    cb.innerHTML = '<button class="btn-small" onclick="closeModal()">CLOSE</button>';
+    wrapper.appendChild(cb);
+  }
+}
+function closeModal(){
+  const p = modalBack.querySelector('.popup');
+  if(p){ p.classList.remove('show'); setTimeout(()=>{ modalBack.style.display='none'; modalBack.innerHTML = ''; }, 260); }
+  else { modalBack.style.display = 'none'; modalBack.innerHTML = ''; }
+}
+modalBack.addEventListener('click', (e)=>{ if(e.target === modalBack) closeModal(); });
+
+/* ================== session management ================== */
+function cleanupExpired(){
+  let users = LS.get('users') || [];
+  const today = new Date();
+  users = users.filter(u => {
+    if(!u.exp) return true;
+    const d = new Date(u.exp);
+    return d >= new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  });
+  LS.set('users', users);
+}
+cleanupExpired();
+
+function renderSideUser(){
+  const cu = LS.get('currentUser') || currentUser;
+  if(!cu){
+    document.getElementById('sideUser').innerText = 'guest';
+    document.getElementById('sideRole').innerText = 'Role: -';
+    document.getElementById('sideExp').innerText = 'Exp: -';
+    profileBtn.textContent = '';
+    return;
+  }
+  document.getElementById('sideUser').innerText = cu.usn;
+  document.getElementById('sideRole').innerText = 'Role: ' + (cu.role || '-');
+  document.getElementById('sideExp').innerText = 'Exp: ' + (cu.exp || 'Permanent');
+  profileBtn.textContent = cu.usn.charAt(0).toUpperCase();
+  // toggle menu items
+  document.getElementById('menuCreate').style.display = (['developer','owner','reseller'].includes(cu.role)) ? 'flex' : 'none';
+  document.getElementById('menuBugStats').style.display = (cu.role === 'developer') ? 'flex' : 'none';
+}
+
+/* ================== login flow (with XR loading) ================== */
+async function doLogin(){
+  const u = usernameInput.value.trim();
+  const p = passwordInput.value;
+  if(!u || !p){ await showLoading(3000); showToast('Enter credentials','error'); return; }
+  // small randomized load 3-4s
+  const dur = 3000 + Math.floor(Math.random()*800);
+  await showLoading(dur);
+  const users = LS.get('users') || [];
+  const found = users.find(x => x.usn === u && x.pass === p);
+  if(!found){ showToast('Invalid username or password','error'); return; }
+  // set session
+  currentUser = found;
+  LS.set('currentUser', currentUser);
+  // UI transition
+  loginScreen.style.display = 'none';
+  mainPanel.style.display = 'block';
+  hambBtn.style.display = 'block';
+  profileBtn.style.color = 'var(--neon)';
+  renderSideUser();
+  renderBugStats();
+  // stop canvas particles (login background) to save CPU
+  stopParticles();
+  showToast('Welcome, ' + currentUser.usn, 'success');
+}
+
+/* wire login button + enter */
+loginBtn.addEventListener('click', doLogin);
+passwordInput.addEventListener('keypress', function(e){ if(e.key === 'Enter') doLogin(); });
+usernameInput.addEventListener('keypress', function(e){ if(e.key === 'Enter') doLogin(); });
+
+/* ================== logout ================== */
+logoutBtn.addEventListener('click', ()=>{
+  LS.rm('currentUser'); currentUser = null;
+  mainPanel.style.display = 'none'; loginScreen.style.display = 'flex';
+  sideMenu.style.left = '-360px';
+  hambBtn.style.display = 'none';
+  renderSideUser();
+  // restart login background
+  startParticles();
+});
+
+/* hide hamburger initially if not logged in */
+try{ if(!LS.get('currentUser')) hambBtn.style.display = 'none'; }catch(e){}
+
+/* ================== side open/close ================== */
+function openSide(){ sideMenu.style.left = '0'; renderSideUser(); }
+function closeSide(){ sideMenu.style.left = '-360px'; }
+hambBtn.addEventListener('click', openSide);
+document.getElementById('closeSide').addEventListener('click', closeSide);
+
+/* ================== bug stats & helpers ================== */
+function renderBugStats(){
+  const stats = LS.get('bugStats') || [];
+  document.getElementById('onlineCount').innerText = (LS.get('users') || []).length;
+  document.getElementById('activeCount').innerText = stats.length || 0;
+}
+function openBugStatsPopup(){
+  const stats = (LS.get('bugStats')||[]).slice().reverse();
+  let rows = '';
+  stats.forEach(s=>{
+    rows += `<tr><td>${escapeHtml(s.from)}</td><td>${escapeHtml(s.bug)}</td><td>${escapeHtml(s.number)}</td><td><button class="btn-small" onclick="copyToClipboard('${escapeAttr(s.number)}')">Copy</button></td></tr>`;
+  });
+  const html = `<h2 style="color:var(--neon);margin:0">Bug Stats</h2>
+    <div style="margin-top:10px">
+      <div style="display:flex;gap:8px;margin-bottom:8px"><button id="refreshStats" class="btn-small">Refresh</button><button onclick="closeModal()" class="btn-small">Close</button></div>
+      <div style="overflow:auto"><table class="table"><thead><tr><th>USN</th><th>JENIS BUG</th><th>NOMOR</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+    </div>`;
+  showModal(html);
+  setTimeout(()=>{ document.getElementById('refreshStats').addEventListener('click', ()=>{ renderBugStats(); openBugStatsPopup(); }); }, 40);
+}
+function copyToClipboard(text){
+  navigator.clipboard.writeText(text).then(()=> showToast('Copied','success')).catch(()=> showToast('Copy failed','error'));
+}
+
+/* ================== utility escaping for safety in HTML strings ================== */
+function escapeHtml(s){ if(!s) return ''; return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'); }
+function escapeAttr(s){ if(!s) return ''; return String(s).replaceAll("'", "\\'").replaceAll('"','\\"'); }
+
+/* ================== Buy list + confirm (login + menu) ================== */
+function openBuyList(){
+  const card = (title, price1, price2) => `
+    <div style="padding:12px;border-radius:10px;background:linear-gradient(90deg, rgba(0,234,255,0.06), rgba(0,150,220,0.03));margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:18px;font-weight:700;color:var(--neon)">${title}</div>
+        <div style="color:var(--text);margin-top:6px">${price1}</div>
+        <div style="color:var(--muted);font-size:13px">${price2}</div>
+      </div>
+      <div><button class="btn-small" onclick="openBuyConfirm('${title.replace(/'/g,"")}')">BUY</button></div>
+    </div>`;
+  const html = `<h2 style="color:var(--neon);margin:0">Buy Account</h2><div style="margin-top:10px">${card('Member Account','35K IDR / Month','100K IDR / Permanent')}${card('Reseller Account','40K IDR / Month','140K IDR / Permanent')}${card('VIP Account','60K IDR / Month','200K IDR / Permanent')}</div>`;
+  showModal(html);
+}
+function openBuyConfirm(role){
+  const html = `<h3 style="color:var(--neon)">BUY "${role.toUpperCase()}" ACCOUNT</h3>
+    <p style="color:var(--muted)">Choose a contact method to continue your purchase:</p>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn-small" onclick="window.open('${WHATSAPP_CONTACT}','_blank')"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
+      <button class="btn-small" onclick="window.open('${TELEGRAM_CONTACT}','_blank')"><i class="fa-brands fa-telegram"></i> Telegram</button>
+    </div>`;
+  showModal(html);
+}
+
+/* wire buy link */
+buyAccountLink.addEventListener('click', (e)=>{ e.preventDefault(); openBuyList(); });
+
+/* menu side wiring */
+document.getElementById('menuBuy').addEventListener('click', ()=> { openBuyList(); closeSide(); });
+document.getElementById('menuChat').addEventListener('click', ()=> { window.open(WHATSAPP_CONTACT,'_blank'); closeSide(); });
+document.getElementById('menuCreate').addEventListener('click', ()=> { openCreateModal(); closeSide(); });
+document.getElementById('menuManage').addEventListener('click', ()=> { openManage(); closeSide(); });
+document.getElementById('menuHome').addEventListener('click', ()=> { closeSide(); });
+document.getElementById('menuBugStats').addEventListener('click', ()=> { openBugStatsPopup(); closeSide(); });
+
+/* ================== Channel CTA ================== */
+channelCard.addEventListener('click', ()=> window.open(CHANNEL_LINK,'_blank') );
+
+/* ================== Button press effect (no box flash) ================== */
+function pressEffect(el, cb){
+  if(!el) return;
+  el.classList.add('pressed');
+  setTimeout(()=> el.classList.remove('pressed'), 260);
+  if(cb) setTimeout(cb, 120);
+}
+
+/* ================== menu buttons wiring ================== */
+document.getElementById('btnBug').addEventListener('click', ()=> pressEffect(document.getElementById('btnBug'), openBugModal));
+document.getElementById('btnWhats').addEventListener('click', ()=> pressEffect(document.getElementById('btnWhats'), ()=> window.open(WHATSAPP_CONTACT,'_blank')));
+document.getElementById('btnChat').addEventListener('click', ()=> pressEffect(document.getElementById('btnChat'), ()=> window.open(WHATSAPP_CONTACT,'_blank')));
+document.getElementById('btnAccount').addEventListener('click', ()=> pressEffect(document.getElementById('btnAccount'), openManage));
+document.getElementById('btnSpam').addEventListener('click', ()=> pressEffect(document.getElementById('btnSpam'), openSpamModal));
+document.getElementById('btnNik').addEventListener('click', ()=> pressEffect(document.getElementById('btnNik'), openNikModal));
+document.getElementById('btnSub').addEventListener('click', ()=> pressEffect(document.getElementById('btnSub'), openSubdomainModal));
+document.getElementById('btnMore').addEventListener('click', ()=> pressEffect(document.getElementById('btnMore'), ()=> showToast('More coming soon','info')));
+
+/* ================== Bug modal (with select white text on input) ================== */
+const COOLDOWN = 70;
+function canSendBug(usn){
+  const key = 'lastBug_'+usn;
+  const last = LS.get(key);
+  if(!last) return {ok:true,left:0};
+  const elapsed = Math.floor((Date.now() - last)/1000);
+  if(elapsed >= COOLDOWN) return {ok:true,left:0};
+  return {ok:false,left:COOLDOWN - elapsed};
+}
+
+function openBugModal(){
+  const cu = LS.get('currentUser');
+  if(!cu){ showToast('Login required','error'); return; }
+  const html = `<h2 style="color:var(--neon);margin:0">BUG Panel</h2>
+    <div style="margin-top:10px">
+      <label style="color:#fff;font-weight:600">Target Number</label>
+      <input id="targetNumber" placeholder="+62xxxxxxxxxx" style="width:100%;padding:12px;border-radius:10px;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.04);color:#fff" />
+      <label style="display:block;margin-top:10px;color:#fff;font-weight:600">Select Bug</label>
+      <select id="bugSelect" style="width:100%;padding:10px;border-radius:8px;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.04);color:#fff">
+        <option>UI CRASH</option>
+        <option>DELAY BUGS</option>
+        <option>IOS BUGS</option>
+      </select>
+      <div style="margin-top:14px;display:flex;gap:10px;align-items:center">
+        <button id="sendBugBtn" class="btn-small">SEND BUG</button>
+        <div class="small-muted" id="cooldownInfo" style="color:var(--muted)"></div>
+      </div>
+    </div>`;
+  showModal(html, {closeBtn:true});
+  setTimeout(()=>{
+    const sb = document.getElementById('sendBugBtn');
+    sb.addEventListener('click', ()=>{
+      const num = document.getElementById('targetNumber').value.trim();
+      const bug = document.getElementById('bugSelect').value;
+      const cu2 = LS.get('currentUser');
+      if(!num){ showToast('Enter target number','error'); return; }
+      const cd = canSendBug(cu2.usn);
+      if(!cd.ok){ showToast('Cooldown active: '+cd.left+'s remaining','error'); return; }
+      const stats = LS.get('bugStats') || [];
+      stats.push({ from: cu2.usn, number: num, bug, date: new Date().toISOString() });
+      LS.set('bugStats', stats);
+      LS.set('lastBug_'+cu2.usn, Date.now());
+      showModal('<h2 style="color:var(--neon)">✅ Berhasil</h2><p>Berhasil mengirim bug ke <strong>'+escapeHtml(num)+'</strong></p>');
+      renderBugStats();
+    });
+  },80);
+}
+
+/* ================== Spam, NIK Parse, Subdomain (simulated) ================== */
+function openSpamModal(){
+  if(!LS.get('currentUser')){ showToast('Login required','error'); return; }
+  const html = `<h2 style="color:var(--neon);margin:0">Spam NGL</h2>
+    <div style="margin-top:10px">
+      <label style="color:#fff;font-weight:600">Target (username)</label>
+      <input id="spamTarget" placeholder="username" style="width:100%;padding:10px;border-radius:8px;background:rgba(0,0,0,0.6);color:#fff"/>
+      <div style="margin-top:8px"><button id="doSpam" class="btn-small">SEND</button></div>
+      <div id="spamResult" style="margin-top:12px"></div>
+    </div>`;
+  showModal(html);
+  setTimeout(()=>{
+    document.getElementById('doSpam').addEventListener('click', ()=>{
+      const t = document.getElementById('spamTarget').value.trim();
+      if(!t){ showToast('Enter username','error'); return; }
+      document.getElementById('spamResult').innerHTML = '<div style="padding:8px;background:rgba(0,0,0,0.4);border-radius:8px">Success (simulated)</div>';
+    });
+  },80);
+}
+
+function openNikModal(){
+  const html = `<h2 style="color:var(--neon);margin:0">NIK Parse</h2>
+    <div style="margin-top:10px">
+      <label style="font-weight:600;color:#fff">NIK (16 digits)</label>
+      <input id="nikInput" placeholder="3203010101010001" style="width:100%;padding:10px;border-radius:8px;background:rgba(0,0,0,0.6);color:#fff" />
+      <div style="margin-top:8px"><button id="doNik" class="btn-small">PARSE</button></div>
+      <div id="nikResult" style="margin-top:12px"></div>
+    </div>`;
+  showModal(html);
+  setTimeout(()=>{
+    document.getElementById('doNik').addEventListener('click', ()=>{
+      const nik = document.getElementById('nikInput').value.trim();
+      if(!/^\d{16}$/.test(nik)){ showToast('NIK harus 16 digit','error'); return; }
+      const area = nik.slice(0,6); const dd = nik.slice(6,8); const mm = nik.slice(8,10); const yy = nik.slice(10,12);
+      let day = parseInt(dd,10); let gender = 'Laki-laki'; if(day > 40){ day -= 40; gender = 'Perempuan'; }
+      const yyNum = parseInt(yy,10); const curYY = new Date().getFullYear()%100; const fullYear = (yyNum > curYY) ? (1900 + yyNum) : (2000 + yyNum);
+      const dob = `${String(day).padStart(2,'0')}-${mm}-${fullYear}`;
+      document.getElementById('nikResult').innerHTML = `<div style="padding:10px;background:rgba(255,255,255,0.02);border-radius:8px;color:var(--text)"><strong>Area code:</strong> ${escapeHtml(area)}<br/><strong>Tanggal lahir:</strong> ${escapeHtml(dob)}<br/><strong>Jenis kelamin:</strong> ${escapeHtml(gender)}</div>`;
+    });
+  },80);
+}
+
+function openSubdomainModal(){
+  const html = `<h2 style="color:var(--neon);margin:0">Subdomain Finder</h2>
+    <div style="margin-top:10px">
+      <label style="color:#fff;font-weight:600">Domain</label>
+      <input id="domainInput" placeholder="example.com" style="width:100%;padding:10px;border-radius:8px;background:rgba(0,0,0,0.6);color:#fff"/>
+      <div style="margin-top:8px"><button id="doSub" class="btn-small">FIND</button></div>
+      <div id="subResult" style="margin-top:12px"></div>
+    </div>`;
+  showModal(html);
+  setTimeout(()=>{
+    document.getElementById('doSub').addEventListener('click', ()=>{
+      const d = document.getElementById('domainInput').value.trim(); if(!d){ showToast('Enter domain','error'); return; }
+      showToast('Searching subdomains...', 'info');
+      setTimeout(()=>{
+        const subs = ['www','mail','admin','dev','test','beta','api','store'].map(s => `${s}.${d}`);
+        let out = '<ul style="padding-left:16px;margin-top:8px">';
+        subs.forEach(s => out += `<li style="margin-bottom:6px"><a href="https://${s}" target="_blank" style="color:var(--neon)">${escapeHtml(s)}</a></li>`);
+        out += '</ul>';
+        document.getElementById('subResult').innerHTML = out;
+      }, 900);
+    });
+  },80);
+}
+
+/* ================== Create & Manage Account ================== */
+function canCreate(role){
+  const cu = LS.get('currentUser');
+  if(!cu) return false;
+  if(cu.role === 'developer') return true;
+  if(cu.role === 'owner') return role !== 'owner';
+  if(cu.role === 'reseller') return role === 'member';
+  return false;
+}
+
+function openCreateModal(){
+  if(!LS.get('currentUser')){ showToast('Login required','error'); return; }
+  const html = `<h2 style="color:var(--neon);margin:0">Create Account</h2>
+    <div style="margin-top:10px">
+      <label style="color:#fff;font-weight:600">Role</label>
+      <select id="newRole" style="width:100%;padding:10px;margin-top:6px;border-radius:8px;background:rgba(0,0,0,0.6);color:#fff">
+        <option value="member">member</option>
+        <option value="reseller">reseller</option>
+        <option value="owner">owner</option>
+      </select>
+      <label style="color:#fff;font-weight:600;margin-top:8px;display:block">Username</label>
+      <input id="newUsn" style="width:100%;padding:10px;margin-top:6px;border-radius:8px;background:rgba(0,0,0,0.6);color:#fff"/>
+      <label style="color:#fff;font-weight:600;margin-top:8px;display:block">Password</label>
+      <input id="newPass" style="width:100%;padding:10px;margin-top:6px;border-radius:8px;background:rgba(0,0,0,0.6);color:#fff"/>
+      <label style="color:#fff;font-weight:600;margin-top:8px;display:block">Days (expiry)</label>
+      <input id="newDays" placeholder="eg 30 or empty for permanent" style="width:100%;padding:10px;margin-top:6px;border-radius:8px;background:rgba(0,0,0,0.6);color:#fff"/>
+      <div style="text-align:right;margin-top:12px"><button id="doCreateBtn" class="btn-small">CREATE</button></div>
+    </div>`;
+  showModal(html);
+  setTimeout(()=>{
+    document.getElementById('doCreateBtn').addEventListener('click', ()=>{
+      const role = document.getElementById('newRole').value;
+      const usn = document.getElementById('newUsn').value.trim();
+      const pass = document.getElementById('newPass').value.trim();
+      const days = parseInt(document.getElementById('newDays').value);
+      if(!usn||!pass){ showToast('Fill fields','error'); return; }
+      if(!canCreate(role)){ showToast('No permission to create that role','error'); return; }
+      const users = LS.get('users')||[];
+      if(users.find(u=>u.usn===usn)){ showToast('Username exists','error'); return; }
+      let exp = null;
+      if(!isNaN(days) && days>0){ const d = new Date(); d.setDate(d.getDate()+days); exp = d.toISOString().slice(0,10); }
+      users.push({ usn, pass, role, exp }); LS.set('users', users);
+      showToast('Created ' + usn, 'success');
+      closeModal(); renderSideUser();
+    });
+  },120);
+}
+
+/* Manage account - change password */
+function openManage(){
+  if(!LS.get('currentUser')){ showToast('Login required','error'); return; }
+  const cu = LS.get('currentUser');
+  const html = `<h2 style="color:var(--neon);margin:0">Manage Account</h2>
+    <div style="margin-top:10px">
+      <p>Username: <strong>${escapeHtml(cu.usn)}</strong></p>
+      <p>Role: ${escapeHtml(cu.role)}</p>
+      <p>Exp: ${escapeHtml(cu.exp || 'Permanent')}</p>
+      <div style="margin-top:8px"><button id="chgPwdBtn" class="btn-small">Change Password</button></div>
+    </div>`;
+  showModal(html);
+  setTimeout(()=>{ document.getElementById('chgPwdBtn').addEventListener('click', openChangePassword); }, 60);
+}
+function openChangePassword(){
+  const html = `<h2 style="color:var(--neon);margin:0">Change Password</h2>
+    <div style="margin-top:10px">
+      <label style="color:#fff">Current Password</label>
+      <input id="curPwd" type="password" style="width:100%;padding:8px;margin-top:6px;border-radius:8px;background:transparent;color:#fff" />
+      <label style="color:#fff;margin-top:8px;display:block">New Password</label>
+      <input id="nPwd" type="password" style="width:100%;padding:8px;margin-top:6px;border-radius:8px;background:transparent;color:#fff" />
+      <label style="color:#fff;margin-top:8px;display:block">Confirm New Password</label>
+      <input id="cPwd" type="password" style="width:100%;padding:8px;margin-top:6px;border-radius:8px;background:transparent;color:#fff" />
+      <div style="text-align:right;margin-top:10px"><button id="doChange" class="btn-small">CHANGE PASSWORD</button></div>
+    </div>`;
+  showModal(html);
+  setTimeout(()=>{
+    document.getElementById('doChange').addEventListener('click', ()=>{
+      const cur = document.getElementById('curPwd').value;
+      const n = document.getElementById('nPwd').value;
+      const c = document.getElementById('cPwd').value;
+      const cu = LS.get('currentUser');
+      if(!cu){ showToast('No session','error'); return; }
+      if(cur !== cu.pass){ showToast('Current password wrong','error'); return; }
+      if(!n || n !== c){ showToast('Confirm mismatch','error'); return; }
+      let users = LS.get('users')||[];
+      const u = users.find(x=> x.usn === cu.usn);
+      if(u){ u.pass = n; LS.set('users', users); cu.pass = n; LS.set('currentUser', cu); showToast('Password changed','success'); closeModal(); renderSideUser(); }
+    });
+  },80);
+}
+
+/* ================== initialisation ================== */
+function init(){
+  cleanupExpired();
+  const cu = LS.get('currentUser');
+  if(cu){
+    currentUser = cu;
+    loginScreen.style.display = 'none';
+    mainPanel.style.display = 'block';
+    hambBtn.style.display = 'block';
+    profileBtn.style.color = 'var(--neon)';
+    // ensure canvas hidden
+    stopParticles();
+  } else {
+    loginScreen.style.display = 'flex';
+    mainPanel.style.display = 'none';
+    hambBtn.style.display = 'none';
+    // show login-only animated background
+    startParticles();
+  }
+  renderSideUser();
+  renderBugStats();
+  // keyboard accessibility for menu buttons
+  document.querySelectorAll('.menu-btn').forEach(el=>{
+    el.addEventListener('keydown', (e)=>{ if(e.key === 'Enter' || e.key === ' ') el.click(); });
+  });
+}
+init();
+
+/* ================== helpers & small UX tweaks ================== */
+/* remove tap flash on mobile (already styled), ensure icon press effect via JS - keep small animation */
+document.querySelectorAll('.menu-btn').forEach(btn=>{
+  btn.addEventListener('touchstart', ()=> btn.classList.add('pressed'));
+  btn.addEventListener('touchend', ()=> setTimeout(()=> btn.classList.remove('pressed'), 140));
+});
+
+/* small safety: if user closes tab while modal open */
+window.addEventListener('keyup', (e)=>{ if(e.key === 'Escape') { closeModal(); closeSide(); } });
+
+/* allow banner to accept direct link edits via variable (done above) */
+/* allow author to change logo via LOGO_URL (applied above) */
+
+/* ================== Extra: make purchase & buy access available from login buy button */
+buyAccountLink.addEventListener('click', (e)=>{ e.preventDefault(); openBuyList(); });
+
+/* ================== End of script ================== */
+</script>
+
+</body>
+</html>
